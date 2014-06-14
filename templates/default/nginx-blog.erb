@@ -1,0 +1,31 @@
+upstream blog {
+    server unix:<%= @root_dir %>/sockets/ghost.blog;
+}
+
+server {
+    listen 80;
+    server_name <%= @url %>;
+    server_tokens off;
+
+    return 301 https://<%= @url %>$request_uri;
+}
+
+server {                                                                         
+    listen 443 ssl default;                                                             
+    server_name <%= @url %>;
+    server_tokens off;
+
+    ssl_certificate /ssl/<%= @url %>/ssl.crt;
+    ssl_certificate_key /ssl/<%= @url %>/ssl.key;
+
+    access_log  /var/log/nginx/<%= @url %>_access.log;
+    error_log   /var/log/nginx/<%= @url %>_error.log;
+
+    client_max_body_size 10M;
+
+    location / {                                                             
+            proxy_pass http://blog;
+            proxy_set_header Host $host;
+            proxy_buffering off;
+    }                                                                        
+}
